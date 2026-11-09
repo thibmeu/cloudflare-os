@@ -68,6 +68,7 @@ import { EMPTY_TREE_OID, gitObjectOid, parseGitCommitRefs } from "./git-codec";
 import {
   listFeaturedBlueprintsFromKv, readBlueprintKvRecord, type BlueprintKvRecord,
 } from "./storage-schema/blueprints-kv";
+import { createMoleFetch } from "./mole-fetch";
 import { WebFetchEnv, validateWebFetchUrl } from "./web-fetch";
 import { UserDurableObject, type UserChatContext } from "./user";
 import type { AgentSpawnerBinding, CallableAgent, SpawnCallableOptions } from "./agent-spawner-binding";
@@ -6270,6 +6271,8 @@ class OverseerImpl implements AgentHooks {
     await Promise.all(removals);
   }
 
+  #moleFetch?: ReturnType<typeof createMoleFetch>;
+
   // Decides how webFetch may fetch `url` for the chat (see AgentHooks.authorizeWebFetch).
   async authorizeWebFetch(chatId: number, url: string, mayRequestApproval: boolean)
       : Promise<{env: WebFetchEnv} | {approvalMessage: string}> {
@@ -6308,7 +6311,17 @@ class OverseerImpl implements AgentHooks {
           "from fetching from public web sites.");
     }
 
+    if (this.env.MOLE_WEB_FETCH && !this.#moleFetch) {
+      this.#moleFetch = createMoleFetch(this.env.MOLE_WEB_FETCH, {
+        get: () => this.storage.moleWallet.get(),
+        put: async wallet => {
+          this.storage.moleWallet.put(wallet);
+          await this.ctx.storage.sync();
+        },
+      });
+    }
     return {env: {
+      fetch: this.#moleFetch,
       ai: this.env.WORKERS_AI,
       gateway: getAiGatewayConfig(this.env),
       allowedHosts,

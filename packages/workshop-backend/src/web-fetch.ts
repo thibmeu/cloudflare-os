@@ -2,7 +2,8 @@
 //
 // Provides an HTTP GET against public HTTPS URLs, or in a workspace that has observed restricted
 // data, against only the hosts an admin trusts (see WebFetchEnv.allowedHosts). There is
-// intentionally no support for POST/PUT/DELETE/PATCH or for forwarding credentials.
+// intentionally no support for POST/PUT/DELETE/PATCH or for caller-supplied credentials.
+// A deployment may opt into server-managed MOLE credentials for one destination.
 //
 // Document-to-Markdown conversion is delegated to Cloudflare Workers AI's
 // `env.WORKERS_AI.toMarkdown()` utility, which handles HTML, PDF, DOCX, XLSX/XLS, ODT/ODS,
@@ -34,6 +35,8 @@ export type WebFetchEnv = {
    * `/cdn-cgi/` path are refused too.
    */
   allowedHosts?: ReadonlySet<string>;
+  /** Workspace-owned MOLE transport, when the deployment opts in. */
+  fetch?: (url: string, init: RequestInit) => Promise<Response>;
 };
 
 export type WebFetchInput = {
@@ -130,9 +133,10 @@ async function fetchFollowingRedirects(
   url: URL,
   allowedHosts: ReadonlySet<string> | undefined,
   signal: AbortSignal,
+  transport: NonNullable<WebFetchEnv["fetch"]> = fetch,
 ): Promise<{ response: Response; url: URL }> {
   for (let redirects = 0; ; ++redirects) {
-    const response = await fetch(url.toString(), {
+    const response = await transport(url.toString(), {
       method: "GET",
       redirect: "manual",
       headers: {
@@ -362,7 +366,7 @@ export async function webFetch(
   let finalUrl: URL;
   try {
     ({ response, url: finalUrl } =
-        await fetchFollowingRedirects(requested, env.allowedHosts, abortController.signal));
+        await fetchFollowingRedirects(requested, env.allowedHosts, abortController.signal, env.fetch));
   } catch (err) {
     if (abortController.signal.aborted) {
       throw new Error(`Fetch timed out after ${FETCH_TIMEOUT_MS}ms`, { cause: err });

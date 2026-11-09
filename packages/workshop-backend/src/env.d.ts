@@ -10,6 +10,9 @@ declare global {
       // (which is what a secret binding, can carry).
       ADMINS?: string[] | string;
 
+      // Opt-in MOLE PoC: JSON {origin, moderator, anchor}, each an HTTPS origin.
+      MOLE_WEB_FETCH?: string;
+
       // The Models tab's admin settings a deployment has until an admin changes one: a JSON object
       // of the AdminConfig fields ADMIN_CONFIG_SEED_FIELDS lists, or the same object as a JSON
       // string (a secret's form). See effectiveAdminConfig() in admin-config.ts.

@@ -1,3 +1,4 @@
+import { wasmModules } from "./scripts/test-wasm";
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import type { Plugin } from 'vite'
@@ -67,6 +68,7 @@ export default {
  */
 export default defineConfig({
   plugins: [
+    wasmModules,
     textModules,
     capnwebValidate(),
     cloudflareTest({

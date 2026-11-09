@@ -90,6 +90,9 @@ export default defineConfig({
     ignorePatterns: [
       '**/dist/**',
       '**/generated/**',
+      // Pinned upstream Guac bindings and compiled example crypto; regenerated, never hand-edited.
+      'packages/workshop-backend/src/vendor/guac/**',
+      'packages/workshop-backend/__tests__/mole/**',
       // Bundled blueprint files are user-authored gadget source extracted verbatim for review. They
       // do not follow the host repository's lint rules and must round-trip without code changes.
       '**/bundled-blueprints/blueprints/*/files/**',

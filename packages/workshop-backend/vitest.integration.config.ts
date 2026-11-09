@@ -1,3 +1,4 @@
+import { wasmModules } from "./scripts/test-wasm";
 import { cloudflareTest } from "@cloudflare/vitest-plugin";
 import capnwebValidate from "capnweb-validate/vite";
 import { defineConfig } from "vitest/config";
@@ -12,6 +13,7 @@ export default defineConfig({
     target: "es2022",
   },
   plugins: [
+    wasmModules,
     capnwebValidate(),
     cloudflareTest({
       main: "./src/server.ts",

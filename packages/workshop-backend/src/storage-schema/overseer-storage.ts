@@ -33,6 +33,7 @@ import type {
   ActionDescription, ActionKind, Gatekeeper, GitObjectType, GitOid, HookController,
   HookDescription, ObservationDescription,
 } from "@gadgets/workshop-shared/gatekeeper";
+import type { MoleWallet } from "../mole-fetch";
 import type { SpawnCallableOptions } from "../agent-spawner-binding";
 
 // =======================================================================================
@@ -1408,6 +1409,8 @@ export function makeOverseerStorage(storage: DurableObjectStorage) {
 
       codeVersion: 0,
       totalCost: 0,
+      // Private MOLE wallet: durable across turns, never exposed through the workspace API.
+      moleWallet: <MoleWallet | undefined>undefined,
 
       // Next workpiece ID. This is called `nextGatekeeperId` for historical reasons (it predates
       // the ability to have multiple gadgets per workspace), but it is actually used to allocate

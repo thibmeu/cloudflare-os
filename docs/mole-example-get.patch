@@ -1,0 +1,30 @@
+--- a/moderator.ts
++++ b/moderator.ts
+@@ -256,7 +256,7 @@
+ // issued the credential. The challenge is recomputed from the request, never
+ // read from the client.
+ async function counter(request: Request, env: Env, keys: Keys, now: number): Promise<Response> {
+-  const binding = `POST ${new URL(request.url).origin}/counter`;
++  const binding = `${request.method} ${new URL(request.url).origin}${new URL(request.url).pathname}`;
+   // Each key's challenge carries its credential context; clients pick theirs.
+   const fresh = () => challenge(...keys.moderators.map(crypto =>
+     header(crypto.run({ kind: 'presentation_challenge', now, binding }))));
+@@ -288,6 +288,9 @@
+   if (existing) return recovered(existing);
+   // Accepted. The update accompanies the response even if the operation fails.
+   try {
++    if (request.method === 'GET') {
++      return withCredential(200, JSON.stringify({ page: 'This page required MOLE credits.' }), verified.credential);
++    }
+     const value = await env.COUNTER.getByName('demo').increment();
+     return withCredential(200, JSON.stringify({ counter: value }), verified.credential);
+   } catch (error) {
+@@ -303,6 +306,8 @@
+         return Response.json({ counter: await env.COUNTER.getByName('demo').value() }, { headers: noStore });
+       const loaded = await keys(env, Date.now());
+       if (request.method === 'GET' && path === '/config') return directory(loaded);
++      if (request.method === 'GET' && path === '/page')
++        return await counter(request, env, loaded, Math.floor(Date.now() / 1000));
+       if (request.method !== 'POST') return new Response('Not found', { status: 404 });
+       const now = Math.floor(Date.now() / 1000);
+       if (path === '/issue') return await issue(request, env, loaded, now);

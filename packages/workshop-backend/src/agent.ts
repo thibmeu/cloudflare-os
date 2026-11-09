@@ -1273,7 +1273,7 @@ Fetch the contents of a public web URL via HTTPS GET. Use this to look up docume
 
 The Gadget's own code (server.js / client.js) still cannot make network requests at runtime; \`webFetch\` is a tool for *you*, not something you can call from gadget code.
 
-Only https:// URLs to public hosts are allowed; credentials in the URL are not permitted, and the request is sent with no cookies and no authorization headers. Bodies longer than about 32K characters are cut off; the frontmatter's \`truncated\` field says so.
+Only https:// URLs to public hosts are allowed; credentials in the URL are not permitted, and the request is sent with no cookies or caller-supplied authorization. The server may use a configured MOLE credit budget; if that budget is exhausted or needs recovery, report the tool error rather than trying to bypass it. Bodies longer than about 32K characters are cut off; the frontmatter's \`truncated\` field says so.
 
 By default, document responses are converted to Markdown for readability: HTML, PDF, DOCX, XLSX, ODT/ODS, CSV, XML, and Apple Numbers files are run through Cloudflare Workers AI's document-conversion service. Plain text, JSON, and other unknown content types are returned as-is. Pass \`raw: true\` to skip conversion and always receive the exact bytes the server sent.
 
